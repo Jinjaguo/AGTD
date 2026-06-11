@@ -1,0 +1,6 @@
+put_the_wine_bottle_on_top_of_the_cabinet.bddl
+put_the_bowl_on_top_of_the_cabinet.bddl
+put_the_bowl_on_the_plate.bddl
+put_the_wine_bottle_on_the_rack.bddl
+put_the_cream_cheese_in_the_bowl.bddl
+put_the_bowl_on_the_stove.bddl

@@ -1,0 +1,1 @@
+This group of tasks reamin the same scene in the training dataset but only change the prompt of the task. The start and end location (or objects) are changed.

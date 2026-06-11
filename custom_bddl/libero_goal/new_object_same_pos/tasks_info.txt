@@ -1,0 +1,2 @@
+libero_goal/new_object_same_pos/put_the_cookies_in_the_bowl.bddl
+libero_goal/new_object_same_pos/put_the_ketchup_on_the_plate.bddl
