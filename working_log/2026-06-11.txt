@@ -1,0 +1,109 @@
+2026-06-11
+==========
+
+Updates
+-------
+1. Read README.md and clarified the stage-one project goal:
+   verify whether pi0.5 OOD failures are already encoded in the pre-decoder
+   latent representation.
+
+2. Fixed the server command typo in README.md:
+   `/home/jinjaguo/AGTD /start_server_record.py` was corrected and replaced
+   with the new attention-recording entry point:
+   `/home/jinjaguo/AGTD/start_server_att_record.py`.
+
+3. Added `start_server_att_record.py` as the new OpenPI websocket server entry
+   point for attention and hidden-state tracing.
+
+4. Added local `scripts/` helpers so AGTD no longer depends on helper files
+   from `/home/jinjaguo/BH_MOE/scripts`.
+
+5. Extended server-side tracing to save:
+   - action chunks
+   - text encoder output
+   - action head input
+   - every-layer action-token hidden states
+   - attention maps with `--attention-record {none,final,full}`
+   - token maps derived from the actual preprocessing/tokenizer/embedding path
+
+6. Confirmed that success/failure statistics should remain rollout-side,
+   because the websocket server does not know LIBERO environment success.
+
+7. Verified syntax/import health with both environments:
+   - `/home/jinjaguo/anaconda3/envs/libero/bin/python`
+   - `/home/jinjaguo/openpi/.venv/bin/python`
+
+8. Added this `working_log/` directory for daily development notes.
+
+9. Read the local IGAR paper PDF:
+   `Restoring Linguistic Grounding in VLA Models via Train-Free Attention Recalibration.pdf`.
+   Key implementation point for this stage: IGAR performs train-free
+   post-softmax attention redistribution, scaling sink text-token attention by
+   `p=0.6` and reallocating released mass to non-sink text tokens.
+
+10. Added an IGAR-style attention intervention baseline:
+    - `attention_trace/` copied and localized from BH_MOE
+    - `start_igar_attention_server.py` starts the OpenPI websocket server in
+      `baseline`, `recalibrated`, `random_text`, or `visual_uniform` mode
+    - default mode is `recalibrated`
+    - default output path follows the BH_MOE-style OOD experiment layout:
+      `OOD_exp/dif_start_end_loc/put_the_cream_cheese_on_the_plate/`
+
+11. Added a single-task BDDL list for the requested task:
+    `custom_bddl/libero_goal/dif_start_end_loc/cream_cheese_plate_tasks_info.txt`.
+
+12. Updated README.md with the two-terminal IGAR run commands for:
+    `custom_bddl/libero_goal/dif_start_end_loc/put_the_cream_cheese_on_the_plate.bddl`.
+
+13. Added `summarize_igar_results.py` to summarize rollout success rates from
+    saved rollout videos.
+
+14. Removed obsolete server entry points:
+    - `start_server_record.py`
+    - `start_server_att_record.py`
+    The remaining server entry point is now `start_igar_attention_server.py`,
+    which includes its own OpenPI policy-loading helpers.
+
+15. Updated IGAR output layout:
+    - removed the `intervention/` directory level
+    - current task root is now
+      `OOD_exp/dif_start_end_loc/put_the_cream_cheese_on_the_plate/`
+    - removed rollout-side `chunk_wise/` output and stopped writing
+      `rollouts_state_record.jsonl` / `rollouts_finalize.jsonl`
+    - removed unused `scripts/` rollout phase helpers
+    - existing recalibrated attention/video outputs were moved into the new
+      task-root layout
+
+16. Measured existing recalibrated attention trace size:
+    `trial_0` under the new attention trace path is 6.5G. The dominant files
+    are per-chunk `attention_topk.jsonl` files.
+
+17. Removed the mode-specific result directory layer:
+    - no more `igar_recalibrated/` or `igar_baseline/` folder under the task
+      root
+    - current output root is directly
+      `OOD_exp/dif_start_end_loc/put_the_cream_cheese_on_the_plate/`
+    - attention traces go under `attention_trace/`
+    - rollout videos go under `videos/`
+
+18. Reduced future attention top-k output:
+    - default `--topk` is now 6 instead of 20
+    - `--topk 0` disables `attention_topk.jsonl` writing entirely
+
+19. Updated rollout collection logic:
+    - default behavior now saves both successful and failed rollout videos
+    - successful and failed trial attention traces are both kept
+    - default `--target_successes` is 5
+    - default `--max_trials` is 20
+    - collection stops after `--target_successes` successes or `--max_trials`
+    - no rollout-side chunk-wise JSONL files are written
+    - a compact `rollout_summary.json` stores aggregate counts only
+
+20. Fixed the active IGAR output layout:
+    - attention traces now save under
+      `OOD_exp/dif_start_end_loc/<task_name>/attention_trace/trial_<id>/chunk_<id>/`
+    - rollout videos now save directly under
+      `OOD_exp/dif_start_end_loc/<task_name>/videos/`
+    - removed the extra trace nesting by task name and attention mode
+    - `--output_root` in `ood_libero_rollouts.py` is now treated as the final
+      video directory, not a parent directory that receives another task folder

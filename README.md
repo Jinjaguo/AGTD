@@ -28,6 +28,71 @@ The experiments use the same task style as the BH-MoE setting, based on construc
 
 The initial goal is to build a minimal experimental pipeline that can test whether the pre-decoder template direction is causally involved in OOD failure.
 
+Use the IGAR attention intervention entry point below for current experiments.
+
+## Working Log
+Daily development notes are maintained in `working_log/`.
+Each text file is named by date, for example `working_log/2026-06-11.txt`, and
+summarizes what changed that day.
+
+## IGAR Attention Intervention
+
+For the IGAR-style attention baseline, use the single-task BDDL list:
+`custom_bddl/libero_goal/dif_start_end_loc/cream_cheese_plate_tasks_info.txt`.
+This first AGTD reproduction keeps the paper's train-free post-softmax
+attention-mass redistribution idea, using spike-based text sink detection and
+`p=0.6`, but does not yet implement the full paper head-query selection
+constraints c1/c2.
+
+Terminal 1 starts the attention-intervention server:
+
+```bash
+cd ~/openpi
+source .venv/bin/activate
+python /home/jinjaguo/AGTD/start_igar_attention_server.py \
+  --attention-mode recalibrated \
+  --p 0.6 \
+  --topk 6 \
+  --port 8000 \
+  policy:checkpoint \
+  --policy.config pi05_libero \
+  --policy.dir /home/jinjaguo/.cache/openpi/pytorch_checkpoints/pi05_libero
+```
+
+Terminal 2 runs only `put_the_cream_cheese_on_the_plate.bddl`:
+
+```bash
+conda activate libero
+cd /home/jinjaguo/AGTD
+python ood_libero_rollouts.py \
+  --input_dir /home/jinjaguo/AGTD/custom_bddl/libero_goal \
+  --tasks_info /home/jinjaguo/AGTD/custom_bddl/libero_goal/dif_start_end_loc/cream_cheese_plate_tasks_info.txt \
+  --libero_root /home/jinjaguo/LIBERO \
+  --host localhost \
+  --port 8000 \
+  --target_successes 5 \
+  --max_trials 20 \
+  --experiment_name dif_start_end_loc \
+  --output_root /home/jinjaguo/AGTD/OOD_exp/dif_start_end_loc/put_the_cream_cheese_on_the_plate/videos
+```
+
+The IGAR attention traces are saved under:
+`OOD_exp/dif_start_end_loc/put_the_cream_cheese_on_the_plate/attention_trace/`.
+The compact rollout summary is saved as:
+`OOD_exp/dif_start_end_loc/put_the_cream_cheese_on_the_plate/rollout_summary.json`.
+
+If top-k files are still too large, run the server with `--topk 0` to skip
+`attention_topk.jsonl` entirely.
+
+To summarize rollout videos, run:
+
+```bash
+cd /home/jinjaguo/AGTD
+python summarize_igar_results.py \
+  --root /home/jinjaguo/AGTD/OOD_exp/dif_start_end_loc \
+  --task_name put_the_cream_cheese_on_the_plate
+```
+
 ## First Edition: Feature-Space IGAR Baseline
 
 The first version of the method is designed as a feature-space analogue of IGAR.
@@ -107,6 +172,3 @@ After the minimum feature-space intervention is validated, the method can be ext
 Instead of using a fixed projection-removal strength, the intervention strength can become dynamic. If a token enters a legitimate grounding sink, the impulse should decay to zero and allow the token to settle naturally. If a token enters an illegitimate template sink, the impulse should increase, push the token out of the sink, and prevent it from returning to the same failure-template basin.
 
 This later stage can introduce adaptive gating, impulse-response analysis, and potentially Gaussian-process-based uncertainty estimation.
-
-
-
