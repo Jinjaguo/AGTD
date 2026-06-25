@@ -55,7 +55,7 @@ Step 1: capture a simulation observation.
 conda activate libero
 
 python /home/jinjaguo/AGTD/text_token_per_chunk_analysis/capture_libero_observation.py \
-  --bddl_path /home/jinjaguo/BH_MOE/custom_bddl/libero_goal/dif_start_end_loc/put_the_bowl_on_the_rack.bddl \
+  --bddl_path /home/jinjaguo/AGTD/custom_bddl/libero_goal/dif_start_end_loc/put_the_bowl_on_the_rack.bddl \
   --libero_root /home/jinjaguo/LIBERO \
   --output_npz /home/jinjaguo/AGTD/text_token_per_chunk_analysis/outputs/put_the_bowl_on_the_rack/observation.npz \
   --wait_steps 10
@@ -73,6 +73,17 @@ Step 2: run the text-token probe on that captured observation.
   --output_dir /home/jinjaguo/AGTD/text_token_per_chunk_analysis/outputs/put_the_bowl_on_the_rack \
   --top_k 8 \
   --max_new_tokens 8
+```
+
+Step 2 optional: run the text-token probe with given candidates on that captured observation.
+
+```bash
+/home/jinjaguo/openpi/.venv/bin/python \
+  /home/jinjaguo/AGTD/text_token_per_chunk_analysis/text_token_probe_candidate.py \
+  --observation_npz /home/jinjaguo/AGTD/text_token_per_chunk_analysis/outputs/put_the_bowl_on_the_rack/observation.npz \
+  --checkpoint_dir /home/jinjaguo/.cache/openpi/pytorch_checkpoints/pi05_libero \
+  --policy_config pi05_libero \
+  --output_dir /home/jinjaguo/AGTD/text_token_per_chunk_analysis/outputs/put_the_bowl_on_the_rack/candidate_probe
 ```
 
 Arguments:
